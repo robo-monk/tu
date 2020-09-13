@@ -19,8 +19,8 @@ main:
 	call inout 		# call the inout subroutine to collect user input
 
 end:
-	movq $0, %rdi #load program exit code
-	call exit #exit the program
+	movq $0, %rdi		# load program exit code
+	call exit		# exit the program
 
 inout:
 	
@@ -57,15 +57,13 @@ inout:
 	movq -16(%rbp), %r9	# param2 is exponent
 	call pow 
 
-	movq %rax, %rsi #move the last value to the last argument
-	jmp pow_end
 
 pow:
 	# prologue
-	pushq %rbp 
+	pushq %rbp		 
 	movq %rsp, %rbp	
-	
-	pop %rbp		#put rbp back to original place
+	pop %rbp		# put rbp back to original place
+
 	movq $1, %rbx		# rbx has value 1
 	movq %r8, %rax		# store base_prompt in rax
 	
@@ -75,16 +73,17 @@ pow:
 	je pow_end 		# jump to end
 
 	# check if expo is 0
-	movq $1, %rsi		# result=1 if expo is 0 )
+	movq $1, %rsi		# result=1 if expo is 0
 	cmpq $0, %r9 		# compare exponent with rbx
 	je pow_end 		# jump to end
-
+	
 loop:
-	mulq %r8		# r8 = r8*r8 
-	decq %r9 		# increment the rbx by 1
+	movq %rax, %rsi		# set last value as current result
 	cmpq $1, %r9 		# compare if the expo is 1
-	jne loop 		#jump if not equal back to the loop
-	ret			#go back to the inout subroutine
+	je pow_end 		# jump if not equal back to the loop
+	mulq %r8		# r8 = r8*r8 & save it to %rax
+	decq %r9 		# decrement expo by 1
+	jmp loop		# loop
 
 pow_end:
 	# print goodby message with result
