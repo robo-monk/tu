@@ -1,11 +1,9 @@
-# This is an improved version of the submitted pow.s
-
 .text
 hello: .asciz "\n Welcome to POW 🚀 \n - by Filippos Taprantzis ( 5110963 ) \n"
 base_prompt: .asciz "\n Please enter a non-negative base \n > " 
 expo_prompt: .asciz "\n Pleae enter the exponent \n > "
 digit_input: .asciz "%d" # input format string for digits
-goodbye: .asciz "\n The result is: %d\n Thanks for using POW! \n" 
+goodbye: .asciz "\n The result is: %d\n Thanks for using POW!" 
 
 .global main
 
@@ -18,18 +16,13 @@ main:
 	movq $hello, %rdi	
 	call printf		# print the greeting for the user
 
-	# calling get2inputs to grab 2 inputs from the user
-	call get2inputs		# call the inout subroutine to collect user input
-	
-	# calling pow
-	movq %rax, %r8		# writing returning values of 
-	movq %rbx, %r9		# get2inputs to param slots of pow()	
-	call pow 
+	call inout 		# call the inout subroutine to collect user input
+
 end:
 	movq $0, %rdi		# load program exit code
 	call exit		# exit the program
 
-get2inputs:
+inout:
 	
 	# prologue
 	pushq %rbp 		# push the basepointer
@@ -59,20 +52,19 @@ get2inputs:
 	movq $0, %rax		# no vectors as param
 	call scanf
 
-	# returning 2 values
-	movq -8(%rbp), %rax 	# param1 is base
-	movq -16(%rbp), %rbx	# param2 is exponent
+	# calling pow()
+	movq -8(%rbp), %r8 	# param1 is base
+	movq -16(%rbp), %r9	# param2 is exponent
+	call pow 
 
-	movq %rbp, %rsp
-	popq %rbp
-	ret
 
 pow:
-	# accepts 2 params 
 	# prologue
 	pushq %rbp		 
 	movq %rsp, %rbp	
 	pop %rbp		# put rbp back to original place
+
+	movq $1, %rbx		# rbx has value 1
 	movq %r8, %rax		# store base_prompt in rax
 	
 	# check if base is 0
@@ -85,22 +77,22 @@ pow:
 	cmpq $0, %r9 		# compare exponent with rbx
 	je pow_end 		# jump to end
 	
-	pow_recur:
-		movq %rax, %rsi		# set last value as current result
-		cmpq $1, %r9 		# compare if the expo is 1
-		je pow_end 		# jump if not equal back to the loop
-		mulq %r8		# r8 = r8*r8 & save it to %rax
-		decq %r9 		# decrement expo by 1
-		jmp pow_recur		# loop
+loop:
+	movq %rax, %rsi		# set last value as current result
+	cmpq $1, %r9 		# compare if the expo is 1
+	je pow_end 		# jump if not equal back to the loop
+	mulq %r8		# r8 = r8*r8 & save it to %rax
+	decq %r9 		# decrement expo by 1
+	jmp loop		# loop
 
-	pow_end:
-		# print goodby message with result
-		movq $goodbye, %rdi 	# param1
-					# param2 is the result ( already in %rsi) 
-		movq $0, %rax 		# no vector registers for printf
-		call printf
-		
-		# epilogue	
-		movq %rbp, %rsp
-		popq %rbp
-		call end
+pow_end:
+	# print goodby message with result
+	movq $goodbye, %rdi 	# param1
+				# param2 is the result ( already in %rsi) 
+	movq $0, %rax 		# no vector registers for printf
+	call printf
+	
+	# epilogue	
+	movq %rbp, %rsp
+	popq %rbp
+	call end
