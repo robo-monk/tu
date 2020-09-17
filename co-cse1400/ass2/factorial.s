@@ -56,6 +56,9 @@ get_input:
 	popq %rbp
 	ret
 
+factorial_0:
+	movq $1, %r9
+	
 factorial_end:
 	# print goodby message with result
 
@@ -67,7 +70,11 @@ factorial_end:
 	
 	# epilogue	
 	call end
+
 factorial_start:
+	cmpq $0, %r8
+	jle factorial_0
+	
 	movq %r8, %r9
 
 factorial:
@@ -78,7 +85,7 @@ factorial:
 	je factorial_start
 
 	cmpq $1, %r8
-	jle factorial_end	# base case return r9
+	je factorial_end	# base case return r9
 	
 	decq %r8
 	movq %r8, %rax		# writing returned value of get_input as first param for factorial
