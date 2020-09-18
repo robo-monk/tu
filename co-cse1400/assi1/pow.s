@@ -24,13 +24,15 @@ main:
 	# calling pow
 	movq %rax, %r8		# writing returning values of 
 	movq %rbx, %r9		# get2inputs to param slots of pow()	
-	call pow 
+	call pow
 end:
 	movq $0, %rdi		# load program exit code
 	call exit		# exit the program
 
 get2inputs:
-	
+	# function that will prompt the user for 2 inputs,
+	# and will store them in %rax & %rbx
+
 	# prologue
 	pushq %rbp 		# push the basepointer
 	movq %rsp, %rbp		# copy stack pointing value to base pointer
@@ -68,7 +70,9 @@ get2inputs:
 	ret
 
 pow:
-	# accepts 2 params 
+	# function that will print the base raised to an exponent
+	# params - base in %r8 & exponent in %r9
+
 	# prologue
 	pushq %rbp		 
 	movq %rsp, %rbp	
@@ -94,12 +98,14 @@ pow:
 		jmp pow_recur		# loop
 
 	pow_end:
-		# print goodby message with result
+
+		# print goodby message with result and returning
 		movq $goodbye, %rdi 	# param1
 					# param2 is the result ( already in %rsi) 
 		movq $0, %rax 		# no vector registers for printf
 		call printf
 		
+		movq %rsi, %rax		# return the result in the rax register
 		# epilogue	
 		movq %rbp, %rsp
 		popq %rbp
