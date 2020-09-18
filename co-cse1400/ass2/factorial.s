@@ -1,33 +1,37 @@
-# Assigment 2 - Computer Organisation
+# Assigment 2 - Computer Organisation - Filippos Taprantzis - 5110963
 
 .text
 hello: .asciz "\n Welcome to FACCtorial 🚀 \n - by Filippos Taprantzis ( 5110963 ) \n"
-n_prompt: .asciz "\n Please enter the n:  \n > " 
+n_prompt: .asciz "Please enter a non-negative number:  \n > " 
 digit_input: .asciz "%d" # input format string for digits
 goodbye: .asciz "\n The result is: %d\n Thanks for using FACCtorial! \n" 
 
 .global main
 
 main:
-	# prologue
-	movq %rsp, %rbp		# init base pointer
-	
 	# greet user
 	movq $0, %rax		# no vectors for last argument for printf
 	movq $hello, %rdi	
 	call printf		# print the greeting for the user
 
-	# calling get2inputs to grab 2 inputs from the user
+	# call get_input to grab a number from the user
 	movq $n_prompt, %rdi	
 	call get_input		# call the inout subroutine to collect user input
-	
+
 	# calling factorial
-	movq %rax, %r8		# writing returned value of get_input as first param for factorial
-	movq $0, %r9		# 0 as second param of factorial ( 0 carry )
+	movq %rax, %rdi		# writing returned value of get_input as first param (n) for factorial
 	call factorial
+	
+	# say goodbye to user
+	movq $goodbye, %rdi 	# param1
+	movq %rax, %rsi		# return value of factorial as param2	
+	movq $0, %rax 		# no vector registers for printf
+	call printf
+
 end:
 	movq $0, %rdi		# load program exit code
 	call exit		# exit the program
+
 
 get_input:
 	# prompts a message stored in %RDI
@@ -51,46 +55,35 @@ get_input:
 	# returning 2 values
 	movq -8(%rbp), %rax 	# return input in rax register
 	
-	# epilogue
+	# epilogue - cleaning up
 	movq %rbp, %rsp
 	popq %rbp
 	ret
 
 factorial_0:
-	movq $1, %r9
+	# 0! = 1
+	movq $1, %rax
+	ret
 	
 factorial_end:
 	# print goodby message with result
 
-	movq %r9, %rsi
-	movq $goodbye, %rdi 	# param1
-				# param2 is the result ( already in %rsi) 
-	movq $0, %rax 		# no vector registers for printf
-	call printf
-	
-	# epilogue	
-	call end
-
-factorial_start:
-	cmpq $0, %r8
-	jle factorial_0
-	
-	movq %r8, %r9
+	movq %rsi, %rax
+	ret
 
 factorial:
-	# accepts 2 params, n in r8 & carry in r9 
-	
-	# prologue
-	cmpq $0, %r9		
-	je factorial_start
+	cmpq $0, %rdi
+	je factorial_0
+	cmpq $0, %rdi
+	movq %rdi, %rsi
 
-	cmpq $1, %r8
-	je factorial_end	# base case return r9
-	
-	decq %r8
-	movq %r8, %rax		# writing returned value of get_input as first param for factorial
-	mulq %r9		# 0 as second param of factorial ( 0 carry )
-	movq %rax, %r9
-	jmp factorial
-	ret
+	factorial_recur: # (n, carry)
+		cmpq $1, %rdi
+		je factorial_end	# base case return r9
+		
+		decq %rdi
+		movq %rdi, %rax		# writing returned value of get_input as first param for factorial
+		mulq %rsi		# 0 as second param of factorial ( 0 carry )
+		movq %rax, %rsi
+		jmp factorial_recur
 
