@@ -33,10 +33,8 @@ end:
 	call exit		# exit the program
 
 
-get_input:
-	# prompts a message stored in %RDI
-	# and asks user for an digital input
-
+get_input: #(prompt)
+	
 	# prologue
 	pushq %rbp 		# push the basepointer
 	movq %rsp, %rbp		# copy stack pointing value to base pointer
@@ -60,30 +58,24 @@ get_input:
 	popq %rbp
 	ret
 
-factorial_0:
-	# 0! = 1
-	movq $1, %rax
-	ret
-	
-factorial_end:
-	# print goodby message with result
+factorial: #(n)
 
-	movq %rsi, %rax
-	ret
+	# base case
+	cmpq $1, %rdi
+	jle fac_end		# jump to fac_end & ret 1 if n <= 0
 
-factorial:
-	cmpq $0, %rdi
-	je factorial_0
-	cmpq $0, %rdi
-	movq %rdi, %rsi
+	push %rbx		# push rbx to the stack
+	movq %rdi, %rbx		# rbx = n
+	decq %rdi		# decriminate n by 1
+	call factorial		# call factorial recursively
+	mul %rbx		# store in ret value (the ret value of factorial) * n
+	jmp fac_ret		# return
 
-	factorial_recur: # (n, carry)
-		cmpq $1, %rdi
-		je factorial_end	# base case return r9
-		
-		decq %rdi
-		movq %rdi, %rax		# writing returned value of get_input as first param for factorial
-		mulq %rsi		# 0 as second param of factorial ( 0 carry )
-		movq %rax, %rsi
-		jmp factorial_recur
+	fac_end:
+		movq $1, %rax	# base case
+		ret
+
+	fac_ret:
+		popq %rbx	#cleanup
+		ret
 
