@@ -12,75 +12,129 @@
 
 .global main
 
-# ************************************************************
-# Subroutine: decode                                         *
-# Description: decodes message as defined in Assignment 3    *
-#   - 2 byte unknown                                         *
-#   - 4 byte index                                           *
-#   - 1 byte amount                                          *
-#   - 1 byte character                                       *
-# Parameters:                                                *
-#   first: the address of the message to read                *
-#   return: no return value                                  *
-# ************************************************************
+# params: clean_block
+# ret: next address of block 
+grab_nextadr:
+	# prologue
+	pushq	%rbp 			# push the base pointer (and align the stack)
+	movq	%rsp, %rbp		# copy stack pointer value to base pointer
+	#grab value
+	movq %rdi, %rax	
+	shr $32, %rax			# chop off value and times off the end of the block 16 bits to crop + 16 0 to crop from previous instruction
+	# epilogue
+	movq	%rbp, %rsp		# clear local variables from stack
+	popq	%rbp			# restore base pointer location 
+	ret
+
+# params: clean_block
+# ret: times to print
+grab_times:
+	# prologue
+	pushq	%rbp 			# push the base pointer (and align the stack)
+	movq	%rsp, %rbp		# copy stack pointer value to base pointer
+	# grab times
+	movq %rdi, %rax			# move chopped block to new register, because the proccess will be destructive
+	shl $32, %rax			# chop off value and times off the end of the block
+	shr $56, %rax			# chop off value and times off the end of the block
+	# epilogue
+	movq	%rbp, %rsp		# clear local variables from stack
+	popq	%rbp			# restore base pointer location 
+	ret
+
+# params: clean_block
+# ret: value to print
+grab_value:
+	# prologue
+	pushq	%rbp 			# push the base pointer (and align the stack)
+	movq	%rsp, %rbp		# copy stack pointer value to base pointer
+	# grab value 
+	movq %rdi, %rax			# move chopped block to ret register
+	shl $40, %rax			# chop off value and times off the end of the block
+	shr $56, %rax			# chop off value and times off the end of the block
+	# epilogue
+	movq	%rbp, %rsp		# clear local variables from stack
+	popq	%rbp			# restore base pointer location 
+	ret
+
+# params: message, block_andress
+# ret: a clean block 
+get_clean_block:
+	# prologue
+	pushq	%rbp 			# push the base pointer (and align the stack)
+	movq	%rsp, %rbp		# copy stack pointer value to base pointer
+	
+	movq $8, %rax
+	mulq %rsi
+	addq %rax, %rdi			# go to the correct block
+	movq (%rdi), %rax		# block to ret register
+	shl $16, %rax			# chop the uknown-uneccessary bits
+	# epilogue
+	movq	%rbp, %rsp		# clear local variables from stack
+	popq	%rbp			# restore base pointer location 
+	ret
+
+# tests
+test:
+	# prologue
+	pushq	%rbp 			# push the base pointer (and align the stack)
+	movq	%rsp, %rbp		# copy stack pointer value to base pointer
+
+	movq %rdi, %rbx			# move to calle saved arg
+	# testing the subroutines
+	/*movq %rbx, %rdi*/
+	call grab_value
+	movq %rax, %rsi
+	movq $0, %rax
+	movq $charn, %rdi
+	call printf			# print the value
+
+	movq %rbx, %rdi
+	call grab_times
+	movq %rax, %rsi
+	movq $0, %rax
+	movq $digit, %rdi
+	call printf			# print the times
+
+	movq %rbx, %rdi
+	call grab_nextadr
+	movq %rax, %rsi
+	movq $0, %rax
+	movq $digit, %rdi
+	call printf			# print the address
+
+	# epilogue
+	movq	%rbp, %rsp		# clear local variables from stack
+	popq	%rbp			# restore base pointer location 
+	ret
+
+#   params: the address of the message to read
+#   ret: no
 decode:
 	# prologue
 	pushq	%rbp 			# push the base pointer (and align the stack)
 	movq	%rsp, %rbp		# copy stack pointer value to base pointer
-	# your code goes here
 
-	/*addq $8, %rdi*/
+	movq %rdi, %rbx
+	movq $0, %r12	
+	print_val:
+		movq %r12, %rsi
+		movq %rbx, %rdi
+		call get_clean_block
+		movq %rax, %r13 		# move clean block to rcx
+	
+		movq %r13, %rdi
+		call grab_value
+		movq %rax, %rsi
+		movq $0, %rax
+		movq $char, %rdi
+		call printf			# print the value
 
-	movq (%rdi), %rbx
+		movq %r13, %rdi
+		call grab_nextadr
+		movq %rax, %r12
 
-	/*movq %rbx, %rsi*/
-	/*movq $digit, %rdi*/
-	/*movq $0, %rax*/
-	/*call printf			# print the input byte block*/
-
-	shl $16, %rbx			# chop the uknown-uneccessary bits
-
-	/*movq %rbx, %rsi*/
-	/*movq $0, %rax*/
-	/*movq $digit, %rdi*/
-	/*call printf			# print the chopped byte block*/
-
-	# grab next address
-	movq %rbx, %rcx			# move chopped block to new register, because the proccess will be destructive
-	shr $32, %rcx			# chop off value and times off the end of the block 16 bits to crop + 16 0 to crop from previous instruction
-	pushq %rcx			# push address value into the stack
-
-	# grab times
-	movq %rbx, %rcx			# move chopped block to new register, because the proccess will be destructive
-	shl $32, %rcx			# chop off value and times off the end of the block
-	shr $56, %rcx			# chop off value and times off the end of the block
-	pushq %rcx			# push address value into the stack
-
-	# grab value 
-	movq %rbx, %rcx			# move chopped block to new register, because the proccess will be destructive
-	shl $40, %rcx			# chop off value and times off the end of the block
-	shr $56, %rcx			# chop off value and times off the end of the block
-	pushq %rcx			# push address value into the stack
-
-
-	# testing the values grabbed
-
-	movq $0, %rax
-	movq $char, %rdi
-	/*movq $digit, %rdi*/
-	popq %rsi
-	/*leaq (%rsi), %rsi*/
-	call printf			# print the value
-
-	movq $0, %rax
-	movq $digit, %rdi
-	popq %rsi
-	call printf			# print the times
-
-	movq $0, %rax
-	movq $digit, %rdi
-	popq %rsi
-	call printf			# print the address
+		cmpq $0, %rax
+		jne print_val
 
 	# epilogue
 	movq	%rbp, %rsp		# clear local variables from stack
