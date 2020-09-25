@@ -1,11 +1,14 @@
 .text
 	value: .asciz "the value is %s"
 	string: .asciz "%s"
+	charn: .asciz "%c\n"
+	char: .asciz "%c"
 	digit: .asciz "%ld\n"
 	hexa: .asciz "%lX"
 
 
-.include "abc_sorted.s"
+/*.include "abc_sorted.s"*/
+.include "helloWorld.s"
 
 .global main
 
@@ -26,7 +29,7 @@ decode:
 	movq	%rsp, %rbp		# copy stack pointer value to base pointer
 	# your code goes here
 
-	addq $8, %rdi
+	/*addq $8, %rdi*/
 
 	movq (%rdi), %rbx
 
@@ -63,8 +66,10 @@ decode:
 	# testing the values grabbed
 
 	movq $0, %rax
-	movq $digit, %rdi
+	movq $char, %rdi
+	/*movq $digit, %rdi*/
 	popq %rsi
+	/*leaq (%rsi), %rsi*/
 	call printf			# print the value
 
 	movq $0, %rax
