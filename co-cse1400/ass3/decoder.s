@@ -116,25 +116,35 @@ decode:
 
 	movq %rdi, %rbx
 	movq $0, %r12	
-	print_val:
+
+	decode_block:
 		movq %r12, %rsi
 		movq %rbx, %rdi
 		call get_clean_block
 		movq %rax, %r13 		# move clean block to rcx
-	
+		
 		movq %r13, %rdi
-		call grab_value
-		movq %rax, %rsi
-		movq $0, %rax
-		movq $char, %rdi
-		call printf			# print the value
+		call grab_times
+		movq %rax, %r14
+
+		print_val:
+			decq %r14
+			movq %r13, %rdi
+			call grab_value
+			movq %rax, %rsi
+			movq $0, %rax
+			movq $char, %rdi
+			call printf			# print the value
+
+			cmpq $0, %r14
+			jne print_val 
 
 		movq %r13, %rdi
 		call grab_nextadr
 		movq %rax, %r12
 
 		cmpq $0, %rax
-		jne print_val
+		jne decode_block 
 
 	# epilogue
 	movq	%rbp, %rsp		# clear local variables from stack
