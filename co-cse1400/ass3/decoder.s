@@ -26,31 +26,26 @@ decode:
 	movq	%rsp, %rbp		# copy stack pointer value to base pointer
 	# your code goes here
 
-	/*addq $8, %rdi*/
+	addq $8, %rdi
 
 	movq (%rdi), %rbx
-	movq %rbx, %rsi
-	movq $digit, %rdi
-	movq $0, %rax
-	call printf
 
-	shl $16, %rbx			# choping the uknown-uneccessary bits
+	/*movq %rbx, %rsi*/
+	/*movq $digit, %rdi*/
+	/*movq $0, %rax*/
+	/*call printf			# print the input byte block*/
 
-	movq %rbx, %rsi
-	movq $0, %rax
-	movq $digit, %rdi
-	call printf
-	# works so far
+	shl $16, %rbx			# chop the uknown-uneccessary bits
+
+	/*movq %rbx, %rsi*/
+	/*movq $0, %rax*/
+	/*movq $digit, %rdi*/
+	/*call printf			# print the chopped byte block*/
 
 	# grab next address
 	movq %rbx, %rcx			# move chopped block to new register, because the proccess will be destructive
 	shr $32, %rcx			# chop off value and times off the end of the block 16 bits to crop + 16 0 to crop from previous instruction
 	pushq %rcx			# push address value into the stack
-
-	movq %rcx, %rsi
-	movq $0, %rax
-	movq $digit, %rdi
-	call printf
 
 	# grab times
 	movq %rbx, %rcx			# move chopped block to new register, because the proccess will be destructive
@@ -58,22 +53,29 @@ decode:
 	shr $56, %rcx			# chop off value and times off the end of the block
 	pushq %rcx			# push address value into the stack
 
-	movq $0, %rax
-	movq $digit, %rdi
-	movq %rcx, %rsi
-	call printf
-
 	# grab value 
 	movq %rbx, %rcx			# move chopped block to new register, because the proccess will be destructive
 	shl $40, %rcx			# chop off value and times off the end of the block
 	shr $56, %rcx			# chop off value and times off the end of the block
 	pushq %rcx			# push address value into the stack
 
-	movq %rcx, %rsi
+
+	# testing the values grabbed
+
 	movq $0, %rax
-	movq $string, %rdi
 	movq $digit, %rdi
-	call printf
+	popq %rsi
+	call printf			# print the value
+
+	movq $0, %rax
+	movq $digit, %rdi
+	popq %rsi
+	call printf			# print the times
+
+	movq $0, %rax
+	movq $digit, %rdi
+	popq %rsi
+	call printf			# print the address
 
 	# epilogue
 	movq	%rbp, %rsp		# clear local variables from stack
