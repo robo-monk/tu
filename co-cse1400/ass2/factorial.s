@@ -60,22 +60,29 @@ get_input: #(prompt)
 
 factorial: #(n)
 
+	# prologue
+	pushq %rbp 		# push the basepointer
+	movq %rsp, %rbp		# copy stack pointing value to base pointer
+
 	# base case
 	cmpq $1, %rdi
-	jle fac_end		# jump to fac_end & ret 1 if n <= 0
-
-	push %rbx		# push rbx to the stack
-	movq %rdi, %rbx		# rbx = n
-	decq %rdi		# decriminate n by 1
+	jle base 		# jump to fac_end & ret 1 if n <= 0
+	
+	pushq %rdi		# push n to the stack
+	decq %rdi		# dec n  by 1
 	call factorial		# call factorial recursively
-	mul %rbx		# store in ret value (the ret value of factorial) * n
-	jmp fac_ret		# return
+	popq %rcx		# pop n to a caller-saved register
+	mul %rcx		# rax = fac(n-1)  * n 
 
-	fac_end:
+	# epilogue - cleaning up
+	movq %rbp, %rsp
+	popq %rbp
+	ret
+
+	base:
 		movq $1, %rax	# base case
-		ret
-
-	fac_ret:
-		popq %rbx	#cleanup
+		# epilogue - cleaning up
+		movq %rbp, %rsp
+		popq %rbp
 		ret
 
