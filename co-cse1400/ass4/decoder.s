@@ -73,11 +73,42 @@ grab_value:
 	popq	%rbp			# restore base pointer location 
 	ret
 
+reset_style:
+	# prologue
+	pushq	%rbp 			# push the base pointer (and align the stack)
+	movq	%rsp, %rbp		# copy stack pointer value to base pointer
+
+	movq $0, %rax
+	movq $reset_ansi, %rdi
+	/*call printf*/
+
+	# epilogue
+	movq	%rbp, %rsp		# clear local variables from stack
+	popq	%rbp			# restore base pointer location 
+	ret
+
+# params: message, block_andress
+# ret: a clean block 
+get_clean_block:
+	# prologue
+	pushq	%rbp 			# push the base pointer (and align the stack)
+	movq	%rsp, %rbp		# copy stack pointer value to base pointer
+
+	# find the block	
+	movq $8, %rax			# 8 for 8 bits
+	mulq %rsi			# 8bits * relative address stored in rsi
+	addq %rax, %rdi			# go to the correct block
+	movq (%rdi), %rax		# contents of calculated address to rax
+	# clean it
+	shl $16, %rax			# chop the color bits
+
+	# epilogue
+	movq	%rbp, %rsp		# clear local variables from stack
+	popq	%rbp			# restore base pointer location 
+	ret
+
 # params: message, block_andress
 # ret: block 
-
-
-
 set_style:
 	# prologue
 	pushq	%rbp 			# push the base pointer (and align the stack)
@@ -90,11 +121,7 @@ set_style:
 	movq $8, %rax			# 8 for 8 bits
 	mulq %rsi			# 8bits * relative address stored in rsi
 	addq %rax, %rdi			# go to the correct block
-
 	movq (%rdi), %rbx		# contents of calculated address to rax
-	movq %rbx, %rsi
-	movq $0, %rax
-	movq $test, %rdi
 
 	movq %rbx, %r12
 	shl $8, %r12	
@@ -122,14 +149,12 @@ set_style:
 		jmp style_epilogue
 
 	print_special:
-		movq $0, %rax
-		movq %r12, %rdi
-		call sfx_decode
-
+		movq %r12, %rdi		# sfx code
+		call sfx_decode		# convert sfx code to ansi
 		movq %rax, %rsi
 		movq $0, %rax
 		movq $free_ansi, %rdi
-		call printf
+		call printf		# print ansi
 	
 	# epilogue
 	style_epilogue:
@@ -187,41 +212,6 @@ sfx_decode:
 	movq	%rbp, %rsp		# clear local variables from stack
 	popq	%rbp			# restore base pointer location 
 	ret
-
-reset_style:
-	# prologue
-	pushq	%rbp 			# push the base pointer (and align the stack)
-	movq	%rsp, %rbp		# copy stack pointer value to base pointer
-
-	movq $0, %rax
-	movq $reset_ansi, %rdi
-	/*call printf*/
-
-	# epilogue
-	movq	%rbp, %rsp		# clear local variables from stack
-	popq	%rbp			# restore base pointer location 
-	ret
-
-# params: message, block_andress
-# ret: a clean block 
-get_clean_block:
-	# prologue
-	pushq	%rbp 			# push the base pointer (and align the stack)
-	movq	%rsp, %rbp		# copy stack pointer value to base pointer
-
-	# find the block	
-	movq $8, %rax			# 8 for 8 bits
-	mulq %rsi			# 8bits * relative address stored in rsi
-	addq %rax, %rdi			# go to the correct block
-	movq (%rdi), %rax		# contents of calculated address to rax
-	# clean it
-	shl $16, %rax			# chop the color bits
-
-	# epilogue
-	movq	%rbp, %rsp		# clear local variables from stack
-	popq	%rbp			# restore base pointer location 
-	ret
-
 
 
 # MAIN CODE
